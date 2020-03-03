@@ -5,8 +5,14 @@
  */
 package kmapsolver;
 
+import java.awt.Desktop;
 import java.awt.Toolkit;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 
 /**
@@ -16,8 +22,8 @@ import javax.swing.JRadioButton;
 public class MainFrame extends javax.swing.JFrame {
 
     // with each amendment version should be changed 
-    private final String version = "1.1";
-    
+    private final String version = "1.2";
+
     public MainFrame() {
         initComponents();
 
@@ -82,7 +88,7 @@ public class MainFrame extends javax.swing.JFrame {
         fvar15 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("K-Map Solver " + version);
+        setTitle("K-Map Solver ");
         setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("Logo.png")));
 
         textpane.setEditable(false);
@@ -194,9 +200,14 @@ public class MainFrame extends javax.swing.JFrame {
         logolabel.setFont(new java.awt.Font("Segoe Print", 0, 45)); // NOI18N
         logolabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         logolabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/kmapsolver/Logo.png"))); // NOI18N
-        logolabel.setText("Solve K-Maps upto four variables in SOP");
+        logolabel.setText("K-Map Solver v" + version);
         logolabel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         logolabel.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        logolabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                logolabelMouseClicked(evt);
+            }
+        });
 
         javax.swing.GroupLayout homepanelLayout = new javax.swing.GroupLayout(homepanel);
         homepanel.setLayout(homepanelLayout);
@@ -541,11 +552,11 @@ public class MainFrame extends javax.swing.JFrame {
     private void solveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_solveActionPerformed
         int val[];
         String soln;
-        
+
         if (twvarpanel.isShowing()) {
             // executes when two variable is selected
             val = new int[4];
-            
+
             for (int i = 0; i < val.length; i++) {
                 // stores value from button text
                 if (twvar[i].getText().matches("X")) {
@@ -557,12 +568,12 @@ public class MainFrame extends javax.swing.JFrame {
 
             // creates instance of two variable solver
             TwVarSolver solver = new TwVarSolver(val);
-            // solves and stores result
+            // solves and stores result in SoP
             soln = solver.solve();
         } else if (trvarpanel.isShowing()) {
             // executes when three variable is selected
             val = new int[8];
-            
+
             for (int i = 0; i < val.length; i++) {
                 // stores value from button text
                 if (trvar[i].getText().matches("X")) {
@@ -574,12 +585,12 @@ public class MainFrame extends javax.swing.JFrame {
 
             // creates instance of three variable solver
             TrVarSolver solver = new TrVarSolver(val);
-            // solves and stores result
+            // solves and stores result in SoP
             soln = solver.solve();
         } else {
             // executes when four variable is selected
             val = new int[16];
-            
+
             for (int i = 0; i < val.length; i++) {
                 // stores value from button text
                 if (fvar[i].getText().matches("X")) {
@@ -591,7 +602,7 @@ public class MainFrame extends javax.swing.JFrame {
 
             // creates instance of four variable solver
             FVarSolver solver = new FVarSolver(val);
-            // solves and stores result
+            // solves and stores result in SoP
             soln = solver.solve();
         }
 
@@ -599,7 +610,29 @@ public class MainFrame extends javax.swing.JFrame {
         if (soln.isEmpty()) {
             textpane.setText(null);
         } else {
-            textpane.setText("SOP = " + soln);
+            // executes if solution is not empty
+            Object[] optionsText = {"Product of Sum", "Sum of Product"};
+            ImageIcon icon = new ImageIcon(MainFrame.class.getResource("Logo icon.png"));
+
+            int choice = JOptionPane.showOptionDialog(null,
+                    "PoS or SoP?", "Choose Output Type",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    icon,
+                    optionsText,
+                    null);
+
+            switch (choice) {
+                case JOptionPane.OK_OPTION:
+                    soln = new SoPtoPoSConverter().convert(soln);
+                    // displays result in PoS
+                    textpane.setText("PoS = " + soln);
+                    break;
+                case JOptionPane.NO_OPTION:
+                    // displays result in SoP
+                    textpane.setText("SoP = " + soln);
+                    break;
+            }
         }
     }//GEN-LAST:event_solveActionPerformed
 
@@ -620,7 +653,7 @@ public class MainFrame extends javax.swing.JFrame {
                 fvarlocal.setText("0");
             }
         }
-        
+
         textpane.setText(null);
     }//GEN-LAST:event_resetActionPerformed
 
@@ -645,10 +678,10 @@ public class MainFrame extends javax.swing.JFrame {
         two.setVisible(true);
         three.setVisible(true);
         four.setVisible(true);
-        
+
         selectors.clearSelection();
         two.requestFocus();
-        
+
         textpane.setText(null);
     }//GEN-LAST:event_backActionPerformed
 
@@ -663,6 +696,15 @@ public class MainFrame extends javax.swing.JFrame {
     private void fourActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fourActionPerformed
         variableSelection(four);
     }//GEN-LAST:event_fourActionPerformed
+
+    private void logolabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_logolabelMouseClicked
+        try {
+            Desktop desktop = java.awt.Desktop.getDesktop();
+            desktop.browse(new URI("https://github.com/emranffl"));
+        } catch (IOException | URISyntaxException e) {
+            System.exit(1);
+        }
+    }//GEN-LAST:event_logolabelMouseClicked
 
     /**
      * @param args the command line arguments
@@ -696,7 +738,7 @@ public class MainFrame extends javax.swing.JFrame {
             new MainFrame().setVisible(true);
         });
     }
-    
+
     private void changeJButtonText(JButton btn) {
         // changes button text upon click
         if (btn.getText().matches("0")) {
@@ -707,26 +749,26 @@ public class MainFrame extends javax.swing.JFrame {
             btn.setText("0");
         }
     }
-    
+
     private void variableSelection(JRadioButton button) {
         if (button.equals(two)) {
             homepanel.setVisible(false);
             twvarpanel.setVisible(true);
-            
+
             for (JButton twvarlocal : twvar) {
                 twvarlocal.setText("0");
             }
         } else if (button.equals(three)) {
             homepanel.setVisible(false);
             trvarpanel.setVisible(true);
-            
+
             for (JButton trvarlocal : trvar) {
                 trvarlocal.setText("0");
             }
         } else {
             homepanel.setVisible(false);
             fvarpanel.setVisible(true);
-            
+
             for (JButton fvarlocal : fvar) {
                 fvarlocal.setText("0");
             }
@@ -741,7 +783,7 @@ public class MainFrame extends javax.swing.JFrame {
         two.setVisible(false);
         three.setVisible(false);
         four.setVisible(false);
-        
+
         textpane.setText(null);
     }
 
